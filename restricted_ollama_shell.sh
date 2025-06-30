@@ -52,8 +52,7 @@ while true; do
             if [[ -n "$args" ]]; then
                 # Reconstruct the arguments string from the array elements
                 # This ensures multi-word prompts are passed correctly
-                full_args_string="${args[@]}"
-                docker exec -i ollama ollama run "$full_args_string"
+                docker exec -i ollama ollama run "$args"
             else
                 echo "Usage: run <model_name>"
             fi
