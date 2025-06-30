@@ -4,10 +4,10 @@
 echo "Welcome to the Ollama Shell"
 
 # Optional: Add a check to see if 'ollama' is in the PATH
-# if ! command -v ollama &> /dev/null; then
-#     echo "Error: 'ollama' command not found. Please ensure Ollama is installed and in your PATH."
-#     exit 1
-# fi
+if ! command -v ollama &> /dev/null; then
+    echo "Error: 'ollama' command not found. Please ensure Ollama is installed and in your PATH."
+    exit 1
+fi
 
 while true; do
     echo -n "ollama> "
@@ -39,7 +39,7 @@ while true; do
             if [[ -n "$args" ]]; then
                 echo "Usage: $cmd"
             else
-                docker exec -it ollama ollama "$cmd"
+                docker exec -it ollama "$cmd"
             fi
             ;;
         run)
@@ -48,7 +48,7 @@ while true; do
                 # Execute 'ollama run' with the rest of the line as arguments
                 # Note: 'run' can take a model and then a prompt.
                 # This passes the rest of the line as arguments.
-                docker exec -it ollama ollama $args
+                docker exec -it ollama ollama run $args
             else
                 echo "Usage: run <model>"
             fi
