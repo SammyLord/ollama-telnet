@@ -10,14 +10,16 @@ if ! docker ps --format '{{.Names}}' | grep -q '^ollama$'; then
 fi
 
 while true; do
+    # Print the prompt without a newline
     echo -n "ollama> "
     
-    # Read the entire line into a variable
-    # -e: enables backslash escapes for echo
+    # Read the entire line from standard input
     read -r line
     
-    # Trim leading/trailing whitespace from the line and normalize internal spaces
-    line=$(echo "$line" | xargs)
+    # --- THIS IS THE KEY FIX ---
+    # Use parameter expansion to remove leading/trailing whitespace and the carriage return (`\r`)
+    line=$(echo "$line" | tr -d '\r' | xargs)
+    # --- END OF FIX ---
     
     # Skip empty lines
     if [[ -z "$line" ]]; then
@@ -25,7 +27,6 @@ while true; do
     fi
 
     # Use a here string to split the line into an array
-    # This is more robust and handles multiple spaces better
     read -r -a input_array <<< "$line"
     
     # Extract the command and arguments from the array
@@ -40,15 +41,13 @@ while true; do
             if [[ -n "$args" ]]; then
                 echo "Usage: $cmd"
             else
-                # Removed the -t flag. It is not needed and causes issues with ncat.
                 docker exec -i ollama ollama "$cmd"
             fi
             ;;
         run)
             # This command requires a model name as an argument
             if [[ -n "$args" ]]; then
-                # Removed the -t flag.
-                # Use a combined string for arguments with 'run'
+                # Use quoted args to handle multi-word prompts
                 docker exec -i ollama ollama run "$args"
             else
                 echo "Usage: run <model_name>"
