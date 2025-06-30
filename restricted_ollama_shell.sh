@@ -16,9 +16,12 @@ while true; do
     # Read the entire line from standard input
     read -r line
     
-    # --- THIS IS THE KEY FIX ---
-    # Use parameter expansion to remove leading/trailing whitespace and the carriage return (`\r`)
-    line=$(echo "$line" | tr -d '\r' | xargs)
+    # --- THIS IS THE ROBUST FIX ---
+    # Trim leading/trailing whitespace and the carriage return (`\r`)
+    # The 'line' variable is now guaranteed to be clean.
+    line="${line#"${line%%[![:space:]]*}"}" # trim leading whitespace
+    line="${line%"${line##*[![:space:]]}"}" # trim trailing whitespace
+    line="${line//[$'\r']}" # remove all carriage return characters
     # --- END OF FIX ---
     
     # Skip empty lines
@@ -47,8 +50,10 @@ while true; do
         run)
             # This command requires a model name as an argument
             if [[ -n "$args" ]]; then
-                # Use quoted args to handle multi-word prompts
-                docker exec -i ollama ollama run "$args"
+                # Reconstruct the arguments string from the array elements
+                # This ensures multi-word prompts are passed correctly
+                full_args_string="${args[@]}"
+                docker exec -i ollama ollama run "$full_args_string"
             else
                 echo "Usage: run <model_name>"
             fi
