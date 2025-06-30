@@ -3,9 +3,9 @@
 
 echo "Welcome to the Ollama Shell"
 
-# Optional: Add a check to see if 'ollama' is in the PATH
-if ! command -v ollama &> /dev/null; then
-    echo "Error: 'ollama' command not found. Please ensure Ollama is installed and in your PATH."
+# Optional: Add a check to see if the 'ollama' Docker container is running.
+if ! docker ps --format '{{.Names}}' | grep -q '^ollama$'; then
+    echo "Error: 'ollama' Docker container is not running."
     exit 1
 fi
 
@@ -13,6 +13,7 @@ while true; do
     echo -n "ollama> "
     
     # Read the entire line into a variable
+    # -e: enables backslash escapes for echo
     read -r line
     
     # Trim leading/trailing whitespace from the line and normalize internal spaces
@@ -24,7 +25,7 @@ while true; do
     fi
 
     # Use a here string to split the line into an array
-    # This is more robust than `cut` and handles multiple spaces better
+    # This is more robust and handles multiple spaces better
     read -r -a input_array <<< "$line"
     
     # Extract the command and arguments from the array
@@ -39,18 +40,18 @@ while true; do
             if [[ -n "$args" ]]; then
                 echo "Usage: $cmd"
             else
-                docker exec -it ollama "$cmd"
+                # Removed the -t flag. It is not needed and causes issues with ncat.
+                docker exec -i ollama ollama "$cmd"
             fi
             ;;
         run)
             # This command requires a model name as an argument
             if [[ -n "$args" ]]; then
-                # Execute 'ollama run' with the rest of the line as arguments
-                # Note: 'run' can take a model and then a prompt.
-                # This passes the rest of the line as arguments.
-                docker exec -it ollama ollama run $args
+                # Removed the -t flag.
+                # Use a combined string for arguments with 'run'
+                docker exec -i ollama ollama run "$args"
             else
-                echo "Usage: run <model>"
+                echo "Usage: run <model_name>"
             fi
             ;;
         exit|quit)
